@@ -364,4 +364,8 @@ export type AppViewState = {
     handleOpenSidebar: (content: string) => void;
     handleCloseSidebar: () => void;
     handleSplitRatioChange: (ratio: number) => void;
+    showClawComputer: boolean;
+    toggleClawComputer: () => void;
+    clawComputerWidth: number;
+    setClawComputerWidth: (width: number) => void;
   };
