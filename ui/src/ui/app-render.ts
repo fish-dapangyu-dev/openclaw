@@ -1458,8 +1458,8 @@ export function renderApp(state: AppViewState) {
                       side="right"
                       orientation="vertical"
                       .initialWidth=${state.clawComputerWidth}
-                      .minWidth=${400}
-                      .maxWidth=${900}
+                      .minWidth=${300}
+                      .maxWidth=${3000}
                       @resize=${(e: CustomEvent) => {
                         if (e.detail.width !== undefined) {
                           state.setClawComputerWidth(e.detail.width);
