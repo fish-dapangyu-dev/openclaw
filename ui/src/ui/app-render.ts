@@ -591,7 +591,7 @@ export function renderApp(state: AppViewState) {
             : nothing
         }
         ${
-          state.tab === "config"
+          state.tab === "config" || state.tab === "chat"
             ? nothing
             : html`<section class="content-header">
               <div>
@@ -1317,7 +1317,17 @@ export function renderApp(state: AppViewState) {
         ${
           state.tab === "chat"
             ? html`
+            <div style="flex: 1; display: flex; flex-direction: row; min-height: 0; overflow: hidden;">
               <div style="flex: 1; display: flex; flex-direction: column; min-width: 0; padding: 12px 16px 32px; overflow: hidden; gap: 24px;">
+                <section class="content-header">
+                  <div>
+                    ${renderChatSessionSelect(state)}
+                  </div>
+                  <div class="page-meta">
+                    ${state.lastError ? html`<div class="pill danger">${state.lastError}</div>` : nothing}
+                    ${renderChatControls(state)}
+                  </div>
+                </section>
 
           
             ${renderChat({
@@ -1445,6 +1455,7 @@ export function renderApp(state: AppViewState) {
                 ? html`
                     <resizable-divider
                       mode="pixels"
+                      side="right"
                       orientation="vertical"
                       .initialWidth=${state.clawComputerWidth}
                       .minWidth=${400}
@@ -1468,6 +1479,7 @@ export function renderApp(state: AppViewState) {
                   `
                 : nothing
             }
+          </div>
         `
             : nothing
         }

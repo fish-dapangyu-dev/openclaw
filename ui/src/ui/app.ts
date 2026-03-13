@@ -170,6 +170,9 @@ export class OpenClawApp extends LitElement {
   @state() sidebarError: string | null = null;
   @state() splitRatio = this.settings.splitRatio;
 
+  @state() showClawComputer = false;
+  @state() clawComputerWidth = 600;
+
   @state() nodesLoading = false;
   @state() nodes: Array<Record<string, unknown>> = [];
   @state() devicesLoading = false;
@@ -708,6 +711,14 @@ export class OpenClawApp extends LitElement {
     const newRatio = Math.max(0.4, Math.min(0.7, ratio));
     this.splitRatio = newRatio;
     this.applySettings({ ...this.settings, splitRatio: newRatio });
+  }
+
+  toggleClawComputer() {
+    this.showClawComputer = !this.showClawComputer;
+  }
+
+  setClawComputerWidth(width: number) {
+    this.clawComputerWidth = width;
   }
 
   render() {

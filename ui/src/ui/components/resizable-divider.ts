@@ -11,9 +11,16 @@ export class ResizableDivider extends LitElement {
   @property({ type: Number }) minRatio = 0.4;
   @property({ type: Number }) maxRatio = 0.7;
 
+  @property({ type: String }) mode: "ratio" | "pixels" = "ratio";
+  @property({ type: String }) side: "left" | "right" = "left";
+  @property({ type: Number }) initialWidth = 0;
+  @property({ type: Number }) minWidth = 0;
+  @property({ type: Number }) maxWidth = Infinity;
+
   private isDragging = false;
   private startX = 0;
   private startRatio = 0;
+  private startWidth = 0;
 
   static styles = css`
     :host {
@@ -60,6 +67,7 @@ export class ResizableDivider extends LitElement {
     this.isDragging = true;
     this.startX = e.clientX;
     this.startRatio = this.splitRatio;
+    this.startWidth = this.initialWidth;
     this.classList.add("dragging");
 
     document.addEventListener("mousemove", this.handleMouseMove);
@@ -78,8 +86,29 @@ export class ResizableDivider extends LitElement {
       return;
     }
 
-    const containerWidth = container.getBoundingClientRect().width;
     const deltaX = e.clientX - this.startX;
+
+    if (this.mode === "pixels") {
+      let newWidth = this.startWidth;
+      if (this.side === "left") {
+        newWidth += deltaX;
+      } else {
+        newWidth -= deltaX;
+      }
+
+      newWidth = Math.max(this.minWidth, Math.min(this.maxWidth, newWidth));
+
+      this.dispatchEvent(
+        new CustomEvent("resize", {
+          detail: { width: newWidth },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+      return;
+    }
+
+    const containerWidth = container.getBoundingClientRect().width;
     const deltaRatio = deltaX / containerWidth;
 
     let newRatio = this.startRatio + deltaRatio;
