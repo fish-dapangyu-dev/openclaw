@@ -2,8 +2,9 @@
 import RFB from "@novnc/novnc";
 // ui/src/ui/components/claw-computer-panel.ts
 import { LitElement, html, css } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { customElement, state, property } from "lit/decorators.js";
 import { createRef, ref, Ref } from "lit/directives/ref.js";
+// @ts-ignore - noVNC types are not available
 
 // Compatible with both .default and non-.default versions
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,13 +22,16 @@ interface RFBInstance {
 
 @customElement("claw-computer-panel")
 export class ClawComputerPanel extends LitElement {
+  @property() vncUrl = "ws://localhost:8081";
+  @property() password = "";
+
   @state() status = "等待連接...";
   @state() isConnected = false;
   @state() isFitted = true;
-  @state() password = "";
 
   private rfb: RFBInstance | null = null;
   private screenRef: Ref<HTMLDivElement> = createRef<HTMLDivElement>();
+  private autoConnectAttempted = false;
 
   static styles = css`
     :host {
@@ -120,7 +124,7 @@ export class ClawComputerPanel extends LitElement {
       <div class="container">
         <h2>noVNC - 自動調整版（穩定無錯誤）</h2>
         <p style="text-align:center; color:#888;">
-          ws://localhost:8081（已轉發到你的 10.75.171.0:25900）
+          ${this.vncUrl}（已轉發到你的 10.75.171.0:25900）
         </p>
         <div class="controls">
           <label>VNC 密碼（如果有）:</label>
@@ -152,7 +156,7 @@ export class ClawComputerPanel extends LitElement {
   }
 
   private connect = async () => {
-    const url = "ws://localhost:8081";
+    const url = this.vncUrl || "ws://localhost:8081";
     if (this.rfb) {
       this.rfb.disconnect();
     }
@@ -243,6 +247,14 @@ export class ClawComputerPanel extends LitElement {
 
   firstUpdated() {
     window.addEventListener("resize", this.handleResize);
+
+    // Auto-connect if URL is configured
+    if (this.vncUrl) {
+      // Use setTimeout to ensure DOM is fully ready and to allow UI to render first
+      setTimeout(() => {
+        void this.connect();
+      }, 100);
+    }
   }
 
   disconnectedCallback() {

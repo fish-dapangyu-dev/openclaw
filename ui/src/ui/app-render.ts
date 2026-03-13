@@ -1472,8 +1472,8 @@ export function renderApp(state: AppViewState) {
                         <button class="claw-computer-close" @click=${() => state.toggleClawComputer()}>×</button>
                       </div>
                       <claw-computer-panel
-                        .vncUrl=${"127.0.0.1:5901"}
-                        .vncToken=${"123456"}
+                        .vncUrl=${state.settings.vncWsUrl}
+                        .password=${state.settings.vncPassword}
                       ></claw-computer-panel>
                     </div>
                   `

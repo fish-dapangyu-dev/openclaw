@@ -299,24 +299,13 @@ export function renderOverview(props: OverviewProps) {
             </select>
           </label>
         </div>
-        <div class="row" style="margin-top: 14px;">
-          <button class="btn" @click=${() => props.onConnect()}>${t("common.connect")}</button>
-          <button class="btn" @click=${() => props.onRefresh()}>${t("common.refresh")}</button>
-          <span class="muted">${
-            isTrustedProxy ? t("overview.access.trustedProxy") : t("overview.access.connectHint")
-          }</span>
-        </div>
         ${
           !props.connected
             ? html`
-                <div class="login-gate__help" style="margin-top: 16px;">
-                  <div class="login-gate__help-title">${t("overview.connection.title")}</div>
-                  <ol class="login-gate__steps">
-                    <li>${t("overview.connection.step1")}<code>openclaw gateway run</code></li>
-                    <li>${t("overview.connection.step2")}<code>openclaw dashboard --no-open</code></li>
-                    <li>${t("overview.connection.step3")}</li>
-                    <li>${t("overview.connection.step4")}<code>openclaw doctor --generate-gateway-token</code></li>
-                  </ol>
+                <div class="login-gate" style="margin-top: 24px;">
+                  <button class="btn primary large" @click=${props.onConnect}>
+                    ${t("overview.connection.connect")}
+                  </button>
                   <div class="login-gate__docs">
                     ${t("overview.connection.docsHint")}
                     <a
@@ -330,6 +319,47 @@ export function renderOverview(props: OverviewProps) {
               `
             : nothing
         }
+      </div>
+
+      <div class="card">
+        <div class="card-title">Remote Desktop</div>
+        <div class="card-sub">Configure VNC connection details</div>
+        <div class="ov-access-grid" style="margin-top: 16px;">
+          <label class="field ov-access-grid__full">
+            <span>WebSocket URL</span>
+            <input
+              .value=${props.settings.vncWsUrl ?? ""}
+              @input=${(e: Event) => {
+                const v = (e.target as HTMLInputElement).value;
+                props.onSettingsChange({ ...props.settings, vncWsUrl: v });
+              }}
+              placeholder="ws://localhost:8081"
+            />
+          </label>
+           <label class="field ov-access-grid__full">
+            <span>Target (Host:Port)</span>
+            <input
+              .value=${props.settings.vncTarget ?? ""}
+              @input=${(e: Event) => {
+                const v = (e.target as HTMLInputElement).value;
+                props.onSettingsChange({ ...props.settings, vncTarget: v });
+              }}
+              placeholder="10.75.171.25900"
+            />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input
+              type="password"
+              .value=${props.settings.vncPassword ?? ""}
+              @input=${(e: Event) => {
+                const v = (e.target as HTMLInputElement).value;
+                props.onSettingsChange({ ...props.settings, vncPassword: v });
+              }}
+              placeholder="VNC Password"
+            />
+          </label>
+        </div>
       </div>
 
       <div class="card">

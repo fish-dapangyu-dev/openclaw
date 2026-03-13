@@ -22,6 +22,9 @@ export type UiSettings = {
   navWidth: number; // Sidebar width when expanded (240–400px)
   navGroupsCollapsed: Record<string, boolean>; // Which nav groups are collapsed
   locale?: string;
+  vncWsUrl?: string;
+  vncPassword?: string;
+  vncTarget?: string;
 };
 
 function isViteDevPage(): boolean {
@@ -135,6 +138,8 @@ export function loadSettings(): UiSettings {
     navCollapsed: false,
     navWidth: 220,
     navGroupsCollapsed: {},
+    vncWsUrl: "ws://localhost:8081",
+    vncTarget: "10.75.171.25900",
   };
 
   try {
@@ -190,6 +195,9 @@ export function loadSettings(): UiSettings {
           ? parsed.navGroupsCollapsed
           : defaults.navGroupsCollapsed,
       locale: isSupportedLocale(parsed.locale) ? parsed.locale : undefined,
+      vncWsUrl: typeof parsed.vncWsUrl === "string" ? parsed.vncWsUrl : defaults.vncWsUrl,
+      vncPassword: typeof parsed.vncPassword === "string" ? parsed.vncPassword : undefined,
+      vncTarget: typeof parsed.vncTarget === "string" ? parsed.vncTarget : defaults.vncTarget,
     };
     if ("token" in parsed) {
       persistSettings(settings);
@@ -219,6 +227,9 @@ function persistSettings(next: UiSettings) {
     navWidth: next.navWidth,
     navGroupsCollapsed: next.navGroupsCollapsed,
     ...(next.locale ? { locale: next.locale } : {}),
+    vncWsUrl: next.vncWsUrl,
+    vncPassword: next.vncPassword,
+    vncTarget: next.vncTarget,
   };
   localStorage.setItem(KEY, JSON.stringify(persisted));
 }
