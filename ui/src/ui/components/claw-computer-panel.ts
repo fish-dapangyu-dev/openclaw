@@ -68,8 +68,57 @@ export class ClawComputerPanel extends LitElement {
       display: flex;
       align-items: center;
       justify-content: center;
+
+      /* macOS-style window border wrapper */
+      padding: 6px;
+      padding-top: 36px; /* Extra space for title bar controls */
+      background: color-mix(
+        in srgb,
+        var(--bg-accent),
+        black 10%
+      ); /* Ensure darker than container */
+      border-radius: 6px;
+      box-shadow:
+        0 0 0 1px var(--border),
+        0 20px 50px rgba(0, 0, 0, 0.4);
+      box-sizing: border-box;
+      position: relative;
     }
-    .screen > div {
+
+    /* Window controls (fake traffic lights) */
+    .window-controls {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      gap: 8px;
+      z-index: 20;
+    }
+
+    .window-control {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      transition:
+        transform 0.1s,
+        opacity 0.2s;
+    }
+    .window-control:hover {
+      opacity: 0.8;
+      transform: scale(1.1);
+    }
+
+    .window-control.maximize {
+      background-color: #27c93f;
+      border-color: #1aab29;
+    }
+    .window-control.close {
+      background-color: #ff5f56;
+      border-color: #e0443e;
+    }
+    .screen > div:not(.window-controls) {
       /* Fix for noVNC wrapper div */
       display: flex !important;
       align-items: center !important;
@@ -88,6 +137,8 @@ export class ClawComputerPanel extends LitElement {
       outline: none;
       display: block; /* Remove inline gap */
       margin: auto !important;
+      border-radius: 0;
+      box-shadow: none;
     }
     .status-overlay {
       position: absolute;
@@ -111,11 +162,21 @@ export class ClawComputerPanel extends LitElement {
       <div class="container">
         ${!this.isConnected ? html`<div class="status-overlay">${this.status}</div>` : null}
         <div class="screen-container">
-          <div ${ref(this.screenRef)} class="screen"></div>
+          <div ${ref(this.screenRef)} class="screen">
+            <div class="window-controls">
+              <div class="window-control close" @click=${this.handleClose}></div>
+              <div class="window-control maximize" @click=${this.toggleFullscreen}></div>
+            </div>
+          </div>
         </div>
       </div>
     `;
   }
+
+  private handleClose = () => {
+    // Dispatch event to parent to close the panel
+    this.dispatchEvent(new CustomEvent("close", { bubbles: true, composed: true }));
+  };
 
   private connect = async () => {
     const url = this.vncUrl || "ws://localhost:8081";
