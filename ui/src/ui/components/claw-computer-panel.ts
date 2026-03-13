@@ -37,8 +37,8 @@ export class ClawComputerPanel extends LitElement {
     :host {
       display: block;
       height: 100%;
-      background: #0a0a0a;
-      color: #eee;
+      background: var(--bg-accent);
+      color: var(--text);
       font-family: system-ui, sans-serif;
     }
     .container {
@@ -51,7 +51,7 @@ export class ClawComputerPanel extends LitElement {
       flex: 1;
       width: 100%;
       height: 100%;
-      background: #000;
+      background: var(--bg-accent);
       overflow: hidden;
       position: relative;
       display: flex;
@@ -59,21 +59,50 @@ export class ClawComputerPanel extends LitElement {
       justify-content: center;
     }
     .screen {
-      width: 100%;
-      height: 100%;
+      /* Remove fixed width/height to allow shrink-wrapping */
+      width: auto;
+      height: auto;
+      /* Maximize but preserve aspect ratio via flex item behavior */
+      max-width: 100%;
+      max-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .screen > div {
+      /* Fix for noVNC wrapper div */
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 100% !important;
+      height: 100% !important;
+      background: transparent !important;
+    }
+    .screen canvas {
+      /* Force canvas to maintain aspect ratio within container */
+      max-width: 100% !important;
+      max-height: 100% !important;
+      width: auto !important;
+      height: auto !important;
+      /* Remove default canvas outline/border */
+      outline: none;
+      display: block; /* Remove inline gap */
+      margin: auto !important;
     }
     .status-overlay {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.7);
+      background: var(--card);
       padding: 16px 24px;
       border-radius: 8px;
-      color: #fff;
+      color: var(--text);
       font-weight: 500;
       pointer-events: none;
       z-index: 10;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
   `;
 

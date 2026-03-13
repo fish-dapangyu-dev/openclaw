@@ -1497,11 +1497,14 @@ export function renderApp(state: AppViewState) {
                 transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 overflow: hidden;
                 flex-shrink: 0;
+                display: flex;
+                flex-direction: column;
               "
             >
               <claw-computer-panel
                 .vncUrl=${state.settings.vncWsUrl}
                 .password=${state.settings.vncPassword}
+                style="flex: 1; min-height: 0;"
               ></claw-computer-panel>
             </div>
           </div>
