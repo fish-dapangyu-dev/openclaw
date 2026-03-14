@@ -138,8 +138,11 @@ export function loadSettings(): UiSettings {
     navCollapsed: false,
     navWidth: 220,
     navGroupsCollapsed: {},
-    vncWsUrl: "ws://localhost:8081",
-    vncTarget: "10.75.171.25900",
+    vncWsUrl:
+      typeof location !== "undefined"
+        ? `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/vnc`
+        : "ws://localhost:18789/vnc",
+    vncTarget: "localhost:5900",
   };
 
   try {

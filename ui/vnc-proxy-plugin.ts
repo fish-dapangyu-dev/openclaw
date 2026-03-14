@@ -3,8 +3,8 @@ import type { PluginOption } from "vite";
 import { WebSocketServer, type RawData } from "ws";
 
 // Use environment variables or hardcoded defaults from the external script
-const VNC_HOST = process.env.OPENCLAW_VNC_HOST || "10.75.171.0";
-const VNC_PORT = parseInt(process.env.OPENCLAW_VNC_PORT || "25900", 10);
+const VNC_HOST = process.env.OPENCLAW_VNC_HOST || "localhost";
+const VNC_PORT = parseInt(process.env.OPENCLAW_VNC_PORT || "5900", 10);
 const WS_PATH = "/vnc";
 
 export function vncProxyPlugin(): PluginOption {
@@ -21,10 +21,29 @@ export function vncProxyPlugin(): PluginOption {
       console.log(`🚀 [Proxy] VNC WebSocket proxy injected at ${WS_PATH}`);
       console.log(`   Forwarding to: ${VNC_HOST}:${VNC_PORT}`);
 
-      wss.on("connection", (ws) => {
-        console.log(`[VNC Proxy] Client connected to ${WS_PATH}`);
+      wss.on("connection", (ws, req) => {
+        const url = new URL(req.url ?? "/", "http://localhost");
+        const target = url.searchParams.get("target");
 
-        const tcpSocket = net.connect(VNC_PORT, VNC_HOST);
+        let host = VNC_HOST;
+        let port = VNC_PORT;
+
+        if (target) {
+          if (target.includes(":")) {
+            const parts = target.split(":");
+            host = parts[0];
+            const p = parseInt(parts[1], 10);
+            if (!isNaN(p)) {
+              port = p;
+            }
+          } else {
+            host = target;
+          }
+        }
+
+        console.log(`[VNC Proxy] Client connected to ${WS_PATH}, forwarding to ${host}:${port}`);
+
+        const tcpSocket = net.connect(port, host);
 
         tcpSocket.on("data", (data) => {
           if (ws.readyState === ws.OPEN) {
@@ -61,7 +80,8 @@ export function vncProxyPlugin(): PluginOption {
 
       // Hook into Vite's HTTP server upgrade event
       server.httpServer?.on("upgrade", (req, socket, head) => {
-        if (req.url === WS_PATH) {
+        const url = new URL(req.url ?? "/", "http://localhost");
+        if (url.pathname === WS_PATH) {
           wss.handleUpgrade(req, socket, head, (ws) => {
             wss.emit("connection", ws, req);
           });

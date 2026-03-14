@@ -1509,7 +1509,9 @@ export function renderApp(state: AppViewState) {
               "
             >
               <claw-computer-panel
+                .enabled=${state.showClawComputer}
                 .vncUrl=${state.settings.vncWsUrl}
+                .vncTarget=${state.settings.vncTarget}
                 .password=${state.settings.vncPassword}
                 @close=${() => state.toggleClawComputer()}
                 style="flex: 1; min-height: 0;"

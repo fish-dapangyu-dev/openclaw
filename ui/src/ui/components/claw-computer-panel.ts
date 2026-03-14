@@ -22,7 +22,8 @@ interface RFBInstance {
 
 @customElement("claw-computer-panel")
 export class ClawComputerPanel extends LitElement {
-  @property() vncUrl = "ws://localhost:8081";
+  @property() vncUrl = "";
+  @property() vncTarget = "";
   @property() password = "";
 
   @state() status = "等待連接...";
@@ -32,6 +33,20 @@ export class ClawComputerPanel extends LitElement {
   private rfb: RFBInstance | null = null;
   private screenRef: Ref<HTMLDivElement> = createRef<HTMLDivElement>();
   private autoConnectAttempted = false;
+
+  @property({ type: Boolean }) enabled = false;
+
+  updated(changedProperties: Map<string, unknown>) {
+    if (changedProperties.has("enabled")) {
+      if (this.enabled) {
+        if (!this.isConnected) {
+          setTimeout(() => void this.connect(), 100);
+        }
+      } else {
+        this.disconnect();
+      }
+    }
+  }
 
   static styles = css`
     :host {
@@ -179,7 +194,25 @@ export class ClawComputerPanel extends LitElement {
   };
 
   private connect = async () => {
-    const url = this.vncUrl || "ws://localhost:8081";
+    let url =
+      this.vncUrl || `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/vnc`;
+
+    // Append target configuration if available
+    if (this.vncTarget) {
+      try {
+        const urlObj = new URL(url);
+        urlObj.searchParams.set("target", this.vncTarget);
+        url = urlObj.toString();
+      } catch {
+        // Fallback for non-standard WebSocket URLs if URL parsing fails
+        if (url.includes("?")) {
+          url += `&target=${encodeURIComponent(this.vncTarget)}`;
+        } else {
+          url += `?target=${encodeURIComponent(this.vncTarget)}`;
+        }
+      }
+    }
+
     if (this.rfb) {
       this.rfb.disconnect();
     }
@@ -211,6 +244,12 @@ export class ClawComputerPanel extends LitElement {
         credentials: { password: this.password || undefined },
         resizeSession: true,
         clipViewport: true,
+      });
+
+      // @ts-ignore
+      this.rfb.addEventListener("securityfailure", (e: CustomEvent) => {
+        console.error("VNC security failure:", e.detail);
+        this.status = `Security negotiation failed: ${e.detail.reason || "Unknown reason"}`;
       });
 
       if (this.rfb) {
@@ -271,8 +310,8 @@ export class ClawComputerPanel extends LitElement {
   firstUpdated() {
     window.addEventListener("resize", this.handleResize);
 
-    // Auto-connect if URL is configured
-    if (this.vncUrl) {
+    // Auto-connect if enabled and URL is configured
+    if (this.enabled && this.vncUrl) {
       // Use setTimeout to ensure DOM is fully ready and to allow UI to render first
       setTimeout(() => {
         void this.connect();

@@ -347,7 +347,7 @@ export function renderOverview(props: OverviewProps) {
                 const v = (e.target as HTMLInputElement).value;
                 props.onSettingsChange({ ...props.settings, vncTarget: v });
               }}
-              placeholder="10.75.171.25900"
+              placeholder="localhost:5900"
             />
           </label>
           <label class="field">
