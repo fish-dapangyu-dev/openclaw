@@ -53,6 +53,8 @@ export class ClawComputerPanel extends LitElement {
   private isResizing = false;
   private resizeEdge = "";
   private aspectRatio = 1;
+  // 记录拖拽开始时鼠标相对于拖拽句柄的位置（点 A）
+  private dragAnchor = { x: 0, y: 0 };
 
   @property({ type: Boolean }) enabled = false;
 
@@ -381,10 +383,18 @@ export class ClawComputerPanel extends LitElement {
     this.dragStart = { x: e.clientX, y: e.clientY };
 
     const screen = this.shadowRoot?.querySelector(".screen") as HTMLDivElement | null;
-    if (screen) {
+    const dragHandle = this.shadowRoot?.querySelector(".drag-handle") as HTMLDivElement | null;
+    if (screen && dragHandle) {
       // 拖拽过程中，暂时禁用 screen 内部所有元素的 pointer-events
       // 这样即使鼠标移动到 VNC 窗口内部，也不会被 canvas 捕获
       screen.classList.add("dragging");
+
+      // 记录鼠标相对于拖拽句柄的位置（点 A）
+      const dragHandleRect = dragHandle.getBoundingClientRect();
+      this.dragAnchor = {
+        x: e.clientX - dragHandleRect.left,
+        y: e.clientY - dragHandleRect.top,
+      };
 
       const rect = screen.getBoundingClientRect();
       // 获取 claw-computer-panel 本身的尺寸
@@ -457,6 +467,42 @@ export class ClawComputerPanel extends LitElement {
         height: this.initialRect.height,
       };
     } else {
+      // 检测是否超过 resizable-divider（左边的分割线）
+      // resizable-divider 就在我们左边，所以用我们自己的左边界作为判断依据
+      const hostRect = this.getBoundingClientRect();
+
+      // 检查鼠标是否超过了我们自己的左边界（即超过了 resizable-divider）
+      if (e.clientX < hostRect.left) {
+        // 切换到悬浮模式
+        this.isFloating = true;
+
+        // 计算新的悬浮窗口位置，保持鼠标相对于拖拽句柄的位置（点 A）
+        // 窗口的左上角 = 鼠标当前位置 - 锚点偏移
+        const newX = e.clientX - this.dragAnchor.x;
+        const newY = e.clientY - this.dragAnchor.y;
+
+        // 更新 floatingRect
+        this.floatingRect = {
+          x: newX,
+          y: newY,
+          width: this.initialRect.width,
+          height: this.initialRect.height,
+        };
+
+        // 更新 initialRect，使其基于新的悬浮位置
+        this.initialRect = {
+          ...this.initialRect,
+          x: newX,
+          y: newY,
+        };
+
+        // 更新 dragStart，使其从当前位置继续拖拽
+        this.dragStart = { x: e.clientX, y: e.clientY };
+
+        return;
+      }
+
+      // 如果没有超过分割线，继续停靠模式的拖拽
       // 每次都直接获取当前尺寸
       const hostHeight = this.offsetHeight;
       const screen = this.shadowRoot?.querySelector(".screen") as HTMLDivElement | null;
@@ -557,6 +603,14 @@ export class ClawComputerPanel extends LitElement {
 
     const dx = e.clientX - this.dragStart.x;
     const dy = e.clientY - this.dragStart.y;
+
+    // 保持宽高比调整
+    // 只有在对角调整时才强制保持宽高比，或者在边缘调整时更新另一个维度？
+    // 用户说“悬浮模式的缩放我要求是不要改变窗口比例的，斜对角拖拽时以对角为固定点缩放，但是不能任意缩放”
+    // 所以应该始终保持比例？或者只在对角时？
+    // “斜对角拖拽时以对角为固定点缩放”暗示对角时必须保持比例。
+    // 单边拖拽通常只改变一个维度，这会破坏比例。
+    // 如果必须保持比例，单边拖拽也必须同时改变另一个维度。
 
     let { x, y, width, height } = this.initialRect;
 
