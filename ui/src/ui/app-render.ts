@@ -1515,6 +1515,7 @@ export function renderApp(state: AppViewState) {
                 .password=${state.settings.vncPassword}
                 @close=${() => state.toggleClawComputer()}
                 @float=${() => state.setClawComputerWidth(0)}
+                @dock=${() => state.setClawComputerWidth(600)}
                 style="flex: 1; min-height: 0;"
               ></claw-computer-panel>
             </div>

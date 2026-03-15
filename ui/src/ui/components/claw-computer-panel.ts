@@ -582,9 +582,9 @@ export class ClawComputerPanel extends LitElement {
     } else {
       // 在右侧松手，保持停靠模式
       this.isFloating = false;
-      // 重置偏移量
-      this.dockedOffsetY = this.initialRect.offsetY;
       this.dockedOffsetX = 0;
+      // 触发事件告诉父组件展开停靠面板
+      this.dispatchEvent(new CustomEvent("dock", { bubbles: true, composed: true }));
     }
 
     this.cleanupDragListeners();
